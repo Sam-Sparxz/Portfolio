@@ -28,9 +28,11 @@ services:
       - key: NOTIFY_TO
         sync: false
 
-  - type: static
+  - type: web
     name: sam-portfolio-frontend
+    env: static
     rootDir: "Web Dev"
+    buildCommand: ""
     staticPublishPath: .
     routes:
       - type: rewrite
