@@ -24,7 +24,10 @@ const contactSubmit = document.querySelector('#contactSubmit');
 const contactStatus = document.querySelector('#contactStatus');
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-const apiBaseUrl = window.API_BASE_URL || 'http://127.0.0.1:8000';
+const defaultApiBaseUrl = window.location.hostname.includes('onrender.com')
+  ? 'https://sam-portfolio-api.onrender.com'
+  : 'http://127.0.0.1:8000';
+const apiBaseUrl = window.API_BASE_URL || defaultApiBaseUrl;
 
 const setContactStatus = (message, type = '') => {
   if (!contactStatus) {
