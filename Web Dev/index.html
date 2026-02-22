@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Optional override for production API base URL; set during deployment -->
+  <meta name="api-base-url" content="" />
   <meta name="description" content="Sam Sparxz portfolio website" />
   <meta property="og:title" content="Sam Sparxz | Portfolio" />
   <meta property="og:description" content="Building intelligent products with AI, data, and clean code." />
@@ -16,6 +18,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="is-loading">
+  <a class="skip-link" href="#home">Skip to content</a>
   <div class="loader" aria-hidden="true">
     <p class="loader-label">Sam Sparxz Portfolio</p>
     <div class="loader-bar"><span></span></div>
@@ -39,7 +42,7 @@
     </nav>
   </header>
 
-  <main id="home">
+  <main id="home" role="main" tabindex="-1" aria-label="Main content">
     <section class="hero section reveal" id="hero">
       <div class="container hero-layout">
         <div class="hero-content">
@@ -187,11 +190,11 @@
       <div class="container contact-shell">
         <div class="contact-panel">
           <p class="section-label">Contact</p>
-          <h2>Let's Build Something Useful</h2>
+          <h2 id="contactHeading">Let's Build Something Useful</h2>
           <p>Open to collaborations, internship opportunities, and engineering conversations.</p>
         </div>
         <div class="contact-list panel">
-          <form id="contactForm" class="contact-form" novalidate>
+          <form id="contactForm" class="contact-form" novalidate aria-labelledby="contactHeading">
             <input type="text" name="honeypot" id="honeypot" style="display:none!important" autocomplete="off" tabindex="-1" />
             <label for="name"><span>Name</span></label>
             <input id="name" name="name" type="text" autocomplete="name" required minlength="2" maxlength="80" />
@@ -241,6 +244,21 @@
     </div>
   </footer>
 
+  <script>
+    (function () {
+      const meta = document.querySelector('meta[name="api-base-url"]');
+      if (meta && meta.content && meta.content.trim()) {
+        window.API_BASE_URL = meta.content.trim().replace(/\/+$/, '');
+      }
+      const skip = document.querySelector('.skip-link');
+      if (skip) {
+        skip.addEventListener('click', (e) => {
+          const main = document.getElementById('home');
+          if (main) main.focus();
+        });
+      }
+    })();
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

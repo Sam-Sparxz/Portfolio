@@ -1,0 +1,90 @@
+name: Run Alembic Migrations on merge to main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine changed areas
+        id: changes
+        run: |
+          echo "Comparing ${GITHUB_EVENT_BEFORE} -> ${GITHUB_SHA}"
+          MIGRATIONS_CHANGED=$(git diff --name-only ${GITHUB_EVENT_BEFORE} ${GITHUB_SHA} | grep -E '^backend/alembic/versions/' || true)
+          BACKEND_CHANGED=$(git diff --name-only ${GITHUB_EVENT_BEFORE} ${GITHUB_SHA} | grep -E '^backend/' || true)
+          FRONTEND_CHANGED=$(git diff --name-only ${GITHUB_EVENT_BEFORE} ${GITHUB_SHA} | grep -E '^Web Dev/' || true)
+
+          if [ -n "$MIGRATIONS_CHANGED" ]; then
+            echo "migrations_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "migrations_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$BACKEND_CHANGED" ]; then
+            echo "backend_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "backend_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "$FRONTEND_CHANGED" ]; then
+            echo "frontend_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "frontend_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        if: steps.changes.outputs.migrations_changed == 'true' || steps.changes.outputs.backend_changed == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: Run Alembic migrations
+        if: steps.changes.outputs.migrations_changed == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Trigger Render backend deploy
+        if: ${{ success() && (steps.changes.outputs.backend_changed == 'true' || steps.changes.outputs.migrations_changed == 'true') }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_BACKEND_SERVICE_ID: ${{ secrets.RENDER_BACKEND_SERVICE_ID }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_BACKEND_SERVICE_ID" ]; then
+            echo "Render backend deploy skipped - missing secrets"
+            exit 0
+          fi
+          echo "Triggering backend deploy..."
+          curl -sSf -X POST "https://api.render.com/v1/services/$RENDER_BACKEND_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}'
+
+      - name: Trigger Render frontend deploy
+        if: ${{ success() && steps.changes.outputs.frontend_changed == 'true' }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_FRONTEND_SERVICE_ID: ${{ secrets.RENDER_FRONTEND_SERVICE_ID }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_FRONTEND_SERVICE_ID" ]; then
+            echo "Render frontend deploy skipped - missing secrets"
+            exit 0
+          fi
+          echo "Triggering frontend deploy..."
+          curl -sSf -X POST "https://api.render.com/v1/services/$RENDER_FRONTEND_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}'

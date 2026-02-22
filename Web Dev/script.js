@@ -46,6 +46,16 @@ if (contactForm) {
     event.preventDefault();
     setContactStatus('');
 
+    // Use built-in HTML5 validation first; focus the first invalid field if any
+    if (!contactForm.checkValidity()) {
+      contactForm.reportValidity();
+      const invalid = contactForm.querySelector(':invalid');
+      if (invalid) {
+        invalid.focus();
+      }
+      return;
+    }
+
     const formData = new FormData(contactForm);
     const payload = {
       name: String(formData.get('name') || '').trim(),
@@ -58,6 +68,10 @@ if (contactForm) {
     if (contactSubmit) {
       contactSubmit.disabled = true;
       contactSubmit.textContent = 'Sending...';
+    }
+
+    // Announce busy state for assistive tech
+    contactForm.setAttribute('aria-busy', 'true');
     }
 
     try {
@@ -83,6 +97,7 @@ if (contactForm) {
         contactSubmit.disabled = false;
         contactSubmit.textContent = 'Send Message';
       }
+      contactForm.setAttribute('aria-busy', 'false');
     }
   });
 }

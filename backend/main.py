@@ -177,8 +177,8 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "portfolio-api"}
 
 
-@app.post("/api/contact", response_model=ContactMessageOut)
 @limiter.limit("6/minute")
+@app.post("/api/contact", response_model=ContactMessageOut)
 def create_contact_message(payload: ContactMessageIn, request: Request) -> ContactMessageOut:
     # Honeypot check: if filled, treat as spam (silently drop)
     if payload.honeypot and payload.honeypot.strip():

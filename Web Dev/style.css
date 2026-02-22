@@ -42,6 +42,29 @@ body {
   min-height: 100vh;
 }
 
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  background: var(--surface-strong);
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  z-index: 1100;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
+  color: var(--text);
+  text-decoration: none;
+}
+
 body.is-loading {
   overflow: hidden;
 }
