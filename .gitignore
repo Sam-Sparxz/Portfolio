@@ -5,3 +5,7 @@ __pycache__/
 backend/.env
 backend/.venv/
 backend/portfolio.db
+# Ignore local sqlite DB
+Web Dev/backend/portfolio.db
+backend/portfolio.db
+
