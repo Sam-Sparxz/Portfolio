@@ -1,3 +1,4 @@
+// Copied from top-level script.js; moved into js/ for organization
 const menuToggle = document.querySelector('.menu-toggle');
 const navLinks = document.querySelector('.nav-links');
 const links = document.querySelectorAll('.nav-links a');
@@ -72,7 +73,6 @@ if (contactForm) {
 
     // Announce busy state for assistive tech
     contactForm.setAttribute('aria-busy', 'true');
-    }
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/contact`, {
